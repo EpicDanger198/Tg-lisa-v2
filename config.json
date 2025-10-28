@@ -1,0 +1,15 @@
+{
+  "botName": "Telegram-Lisa-Bot",
+  "nickname": "Lisa",
+  "prefix": "/",
+  "owner": "Nisan",
+  "adminUID": [5443875693],
+  "vipUID": [5443875693],
+  "devUID": [5443875693],
+  "apiKeys": {
+    "someAPI": "YOUR_API_KEY_HERE"
+  },
+  "mongodb": {
+    "uri": "mongodb+srv://nisanpromax2:YwBskzlPfkWVKQJn@nisan.556hj26.mongodb.net/myDatabase?retryWrites=true&w=majority&appName=Nisan"
+  }
+}
