@@ -8,7 +8,7 @@ const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 const bot = new TelegramBot(token, { polling: true });
 bot.config = config;
 
-// Connect MongoDB
+// MongoDB connection
 let dbClient;
 (async () => {
   try {
@@ -33,8 +33,67 @@ fs.readdirSync(cmdsPath).forEach(file => {
   }
 });
 
-// Register command handlers with prefix
-bot.onText(new RegExp(`^\\${config.prefix}(\\w+)(?:\\s+(.+))?`), (msg, match) => {
+// Command handler with prefix
+bot.onText(new RegExp(`^\\${config.prefix}(\\w+)(?:\\s+(.+))?`), async (msg, match) => {
+  const userId = msg.from.id;
+  const commandName = match[1].toLowerCase();
+  const args = match[2];
+  const command = bot.commands.get(commandName);
+
+  if (!command) return;
+
+  if (command.admin && !config.adminUID.includes(userId))
+    return bot.sendMessage(msg.chat.id, "Only admins can use this command.");
+  if (command.vip && !config.vipUID.includes(userId) && !config.adminUID.includes(userId))
+    return bot.sendMessage(msg.chat.id, "Only VIPs can use this command.");
+
+  try {
+    await command.execute(bot, msg, args);
+
+    if (bot.db) {
+      await bot.db.collection('commandLogs').insertOne({
+        userId,
+        username: msg.from.username,
+        command: commandName,
+        args: args || null,
+        date: new Date()
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    bot.sendMessage(msg.chat.id, "Error executing command.");
+  }
+});
+
+// Load events
+const eventsPath = path.join(__dirname, 'scripts', 'events');
+fs.readdirSync(eventsPath).forEach(file => {
+  if (file.endsWith('.js')) {
+    const event = require(path.join(eventsPath, file));
+    bot.on(event.name, (...args) => event.execute(bot, ...args));
+  }
+});
+
+// Inline button callback
+bot.on('callback_query', async (query) => {
+  const msg = query.message;
+  const data = query.data;
+
+  if (data.startsWith('help_')) {
+    const cmdName = data.split('_')[1];
+    const command = bot.commands.get(cmdName);
+    if (command) {
+      await bot.sendMessage(msg.chat.id, `/${cmdName} - ${command.description}`);
+    }
+    bot.answerCallbackQuery(query.id);
+  }
+});
+
+// Uptime interval logging
+setInterval(() => {
+  const uptime = process.uptime();
+  console.log(`${config.botName} uptime: ${Math.floor(uptime)} seconds`);
+}, 60000);bot.onText(new RegExp(`^\\${config.prefix}(\\w+)(?:\\s+(.+))?`), (msg, match) => {
   const commandName = match[1].toLowerCase();
   const args = match[2];
   const command = bot.commands.get(commandName);
