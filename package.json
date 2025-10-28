@@ -1,0 +1,16 @@
+{
+  "name": "telegram-lisa-bot",
+  "version": "1.0.0",
+  "description": "Modular Telegram bot with Soho structure, MongoDB, admin/VIP commands",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "author": "Nisan",
+  "license": "MIT",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.61.0",
+    "dotenv": "^16.3.1",
+    "mongodb": "^5.12.0"
+  }
+}
